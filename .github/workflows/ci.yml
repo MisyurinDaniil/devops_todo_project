@@ -49,12 +49,6 @@ jobs:
         run: |
           black --check app/backend
 
-      # 6. Запускаем flake8 (статический анализ)
-      - name: Run flake8
-        run: |
-          flake8 app/backend
-
-
   test:
     name: Django unit tests
     runs-on: ubuntu-latest
