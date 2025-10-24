@@ -37,7 +37,7 @@ class TaskAPITests(APITestCase):
         second = Task.objects.create(title="newer task")
 
         # Получаем URL для списка задач (task-list — имя, заданное DRF router'ом)
-        url = reverse('task-list')
+        url = reverse("task-list")
 
         # Делаем GET-запрос к /api/tasks/
         response = self.client.get(url)
@@ -76,21 +76,19 @@ class TaskAPITests(APITestCase):
           - запись реально создаётся в базе
         """
 
-        url = reverse('task-list')
+        url = reverse("task-list")
 
         # JSON-данные для создания задачи
-        payload = {
-            "title": "Do homework",
-            "description": "math + english"
-        }
+        payload = {"title": "Do homework", "description": "math + english"}
 
         # Выполняем POST-запрос
-        response = self.client.post(url, payload, format='json')
+        response = self.client.post(url, payload, format="json")
 
         # Проверяем, что API ответило 201 (Created)
         self.assertEqual(
-            response.status_code, 201,
-            f"Ожидался статус 201, получено {response.status_code}"
+            response.status_code,
+            201,
+            f"Ожидался статус 201, получено {response.status_code}",
         )
 
         # Проверяем, что задача реально добавлена в БД
@@ -114,10 +112,12 @@ class TaskAPITests(APITestCase):
         Проверяем, что GET /api/tasks/<id>/ возвращает конкретную задачу.
         """
 
-        task = Task.objects.create(title="Check details", description="verify GET detail")
+        task = Task.objects.create(
+            title="Check details", description="verify GET detail"
+        )
 
         # Формируем URL вида /api/tasks/<id>/
-        url = reverse('task-detail', args=[task.id])
+        url = reverse("task-detail", args=[task.id])
         response = self.client.get(url)
 
         # Проверяем статус
@@ -139,7 +139,7 @@ class TaskAPITests(APITestCase):
 
         task = Task.objects.create(title="Mark me done")
 
-        url = reverse('task-detail', args=[task.id])
+        url = reverse("task-detail", args=[task.id])
         response = self.client.patch(url, {"completed": True}, format="json")
 
         # PATCH должен вернуть 200 OK
@@ -162,7 +162,7 @@ class TaskAPITests(APITestCase):
 
         task = Task.objects.create(title="To be deleted")
 
-        url = reverse('task-detail', args=[task.id])
+        url = reverse("task-detail", args=[task.id])
         response = self.client.delete(url)
 
         # Удаление должно вернуть 204 No Content
