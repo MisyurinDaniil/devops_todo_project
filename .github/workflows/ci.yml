@@ -1,0 +1,169 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint (black / flake8)
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Получаем код
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Ставим Python 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # 3. Кэшируем pip-зависимости, чтобы не тратить время каждый пуш
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('app/backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # 4. Устанавливаем зависимости бэкенда + линтеры
+      - name: Install deps and linters
+        working-directory: app/backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # requirements.txt у тебя не содержит сам Django,
+          # поэтому подстрахуемся и установим явно.
+          pip install django
+          pip install black flake8
+
+      # 5. Проверяем форматирование black'ом (только проверка, не правит)
+      - name: Run black --check
+        run: |
+          black --check app/backend
+
+      # 6. Запускаем flake8 (статический анализ)
+      - name: Run flake8
+        run: |
+          flake8 app/backend
+
+
+  test:
+    name: Django unit tests
+    runs-on: ubuntu-latest
+    needs: lint  # не тестируем, если линт уже упал
+
+    # Поднимаем Postgres как отдельный сервис-контейнер рядом с runner'ом.
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: todo
+          POSTGRES_USER: todo
+          POSTGRES_PASSWORD: todo
+        ports:
+          - 5432:5432
+        # healthcheck, чтобы не стартовать тесты пока БД не готова
+        options: >-
+          --health-cmd="pg_isready -U todo -d todo"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      # 1. Получаем код
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Ставим Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # 3. Кэш pip
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('app/backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # 4. Устанавливаем зависимости для бэкенда
+      - name: Install backend deps
+        working-directory: app/backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install django
+          # если хочешь покрытие потом:
+          # pip install coverage
+
+      # 5. Прогоняем миграции против тестовой БД,
+      #    чтобы убедиться что schema ок и Postgres отвечает.
+      - name: Run migrate (smoke check)
+        working-directory: app/backend
+        env:
+          POSTGRES_DB: todo
+          POSTGRES_USER: todo
+          POSTGRES_PASSWORD: todo
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          SECRET_KEY: test-secret-key
+          DEBUG: "1"
+          VERSION: "ci"
+        run: |
+          python manage.py migrate --noinput
+
+      # 6. Запускаем unit тесты.
+      # Django сам создаст отдельную test-базу (test_todo и т.д.),
+      # выполнит миграции туда, прогонит твои tests.py и удалит эту базу.
+      - name: Run unit tests
+        working-directory: app/backend
+        env:
+          POSTGRES_DB: todo
+          POSTGRES_USER: todo
+          POSTGRES_PASSWORD: todo
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          SECRET_KEY: test-secret-key
+          DEBUG: "1"
+          VERSION: "ci"
+        run: |
+          python manage.py test --verbosity 2
+
+
+  build:
+    name: Docker build
+    runs-on: ubuntu-latest
+    needs: test  # не билдим образ, если тесты упали
+
+    steps:
+      # 1. Получаем код
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Настраиваем Buildx (современный билдер Docker для multi-arch и кеша)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 4. Сборка backend-образа.
+      # Dockerfile лежит в app/Dockerfile,
+      # значит контекст билда должен быть корень репозитория (".").
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: app/Dockerfile
+          push: false 
+          tags: |
+            todo-backend:ci
+            todo-backend:${{ github.sha }}

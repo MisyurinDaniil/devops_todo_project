@@ -1,0 +1,91 @@
+# ==========================
+# Python cache / build files
+# ==========================
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.eggs/
+build/
+dist/
+pip-wheel-metadata/
+*.log
+
+# ==========================
+# Virtual environments (в любом подкаталоге)
+# ==========================
+.venv
+.venv/**
+venv/
+env/
+**/.venv
+**/.venv/**
+**/venv
+**/venv/**
+**/env
+**/env/**
+
+# ==========================
+# Django / Flask / FastAPI артефакты
+# ==========================
+*.sqlite3
+*.db
+media/
+staticfiles/
+.collectstatic/
+**/media/
+**/staticfiles/
+**/.collectstatic/
+.coverage
+htmlcov/
+pytest_cache/
+.mypy_cache/
+.ruff_cache/
+__pypackages__/
+
+# ==========================
+# Editor / OS files
+# ==========================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ==========================
+# Git / VCS
+# ==========================
+.git/
+.gitignore
+.gitattributes
+
+# ==========================
+# Docker / Compose / Env files
+# ==========================
+Dockerfile
+**/Dockerfile
+docker-compose.yml
+docker-compose.override.yml
+.env
+.env.*
+*.env
+
+# ==========================
+# Node / frontend (если есть)
+# ==========================
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-error.log
+pnpm-lock.yaml
+
+# ==========================
+# Miscellaneous
+# ==========================
+*.bak
+*.tmp
+*.old

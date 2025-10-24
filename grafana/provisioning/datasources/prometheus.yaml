@@ -1,0 +1,13 @@
+# Файл, который добавляет Prometheus как источник данных в Grafana.
+
+# Что делает:
+# говорит Grafana: «Подключись к Prometheus по адресу http://prometheus:9090»;
+# помечает этот источник как основной (isDefault: true);
+# при запуске контейнера Grafana автоматически создаёт datasource
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true

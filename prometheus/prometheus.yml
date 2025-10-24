@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Django backend replicas (via Docker DNS A-records)
+  - job_name: 'django'
+    metrics_path: /metrics
+    scheme: http
+    # Вариант 1 (проще): DNS discovery по имени сервиса.
+    # Prometheus будет периодически резолвить имя "backend" и брать ВСЕ A-записи
+    # (каждая реплика backend получит свой внутренний IP).
+    dns_sd_configs:
+      - names: ['backend']
+        type: 'A'
+        port: 8000
+        refresh_interval: 30s
+
+  # Nginx exporter (scrapes stub_status via the exporter)
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+
+  # Postgres exporter
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']

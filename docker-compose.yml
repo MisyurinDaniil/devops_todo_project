@@ -1,0 +1,153 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: todo_db
+    expose:
+      - "5432"
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - todo_internal
+  
+  # этот сервис нужен чтобы выполнить один раз миграции и не выполнять 
+  # их в каждой реплике бэкенда
+  migrate_bd_django:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "python manage.py migrate --fake-initial"
+    restart: "no"
+    networks:
+      - todo_internal
+  
+  backend:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    expose:
+      - "8000"
+    env_file:
+      - .env
+    depends_on:
+      migrate_bd_django:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8000/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - todo_internal
+    cpus: 0.75
+    mem_limit: 512m
+
+  frontend-nginx:
+    image: nginx:alpine
+    container_name: todo_frontend
+    volumes:
+      - ./app/frontend:/usr/share/nginx/html:ro
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - todo_public
+  
+  nginx-proxy-loadb:
+    image: nginx:alpine
+    container_name: todo_nginx_proxy_loadbal
+    depends_on:
+      - backend
+    ports:
+      - "8888:80"
+    volumes:
+      - ./nginx/app.conf:/etc/nginx/conf.d/app.conf:ro
+    restart: unless-stopped
+    networks:
+      - todo_internal
+      - todo_public
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: todo_prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - 9090:9090
+    depends_on:
+      - backend
+    networks:
+      - todo_internal
+      - todo_public
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.5.1
+    container_name: todo_nginx_exporter
+    restart: unless-stopped
+    command:
+      - -nginx.scrape-uri=http://nginx-proxy-loadb/nginx_status
+    depends_on:
+      - nginx-proxy-loadb
+    expose:
+      - '9113'
+    networks:
+      - todo_internal
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: todo_postgres_exporter
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable
+    depends_on:
+      - db
+    expose:
+      - '9187'
+    networks:
+      - todo_internal
+      
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: todo_grafana
+    restart: unless-stopped
+    env_file:
+      - .env.grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+    networks:
+      - todo_public
+
+volumes:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  todo_internal:
+    driver: bridge
+    internal: true
+  todo_public:
+    driver: bridge

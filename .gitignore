@@ -1,0 +1,146 @@
+# ============================================
+# 🐍 Python backend (Django / FastAPI / Flask)
+# ============================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+*.egg
+*.log
+*.sqlite3
+db.sqlite3
+*.db
+
+# Virtual environments
+# .env
+.venv/
+# env/
+venv/
+# ENV/
+Pipfile.lock
+
+# Local settings / secrets
+*.env.local
+*.env.dev
+*.env.prod
+*.secret
+secrets/
+# .env*
+
+# Compiled translations
+*.mo
+
+# ============================================
+# 🧰 Node / Frontend (React / Vue / etc.)
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+build/
+.cache/
+.next/
+out/
+
+# Frontend environment files
+.env.production
+.env.development
+.env.local
+
+# ============================================
+# 🐋 Docker / Compose / Swarm
+# ============================================
+# Docker
+Dockerfile~
+docker-compose.override.yml
+docker-compose.*.yml
+# Ignore local volumes & data
+data/
+tmp/
+*.pid
+
+# Docker secrets (вручную созданные)
+secrets/
+*.secret
+/run/secrets/*
+
+# ============================================
+# 📊 Prometheus / Grafana / Metrics
+# ============================================
+prometheus/data/
+prometheus/*.db
+grafana/data/
+grafana/logs/
+grafana/plugins/
+grafana/provisioning/datasources/datasource.yml  # если содержит креды
+
+# ============================================
+# ⚙️ System / OS
+# ============================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+.nfs*
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*.iml
+
+# ============================================
+# 📦 Other caches / artifacts
+# ============================================
+__pycache__/
+.cache/
+.coverage
+htmlcov/
+pytest_cache/
+.mypy_cache/
+.pytest_cache/
+.tox/
+coverage.xml
+*.cover
+*.py,cover
+*.pytest_cache/
+nosetests.xml
+test-results.xml
+
+# ============================================
+# 🧱 Build and deployment
+# ============================================
+build/
+dist/
+*.bak
+*.tmp
+*.old
+*.orig
+*.lock
+
+# ============================================
+# 🚫 Sensitive / temporary project files
+# ============================================
+.envrc
+.env.docker
+*.crt
+*.pem
+*.key
+*.csr
+*.enc
+*.token
+*.json.key
+private_keys/
+*.zip

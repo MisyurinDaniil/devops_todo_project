@@ -1,0 +1,17 @@
+# Файл, который говорит Grafana, где искать дашборды.
+
+# Что делает:
+# создаёт папку TODO в интерфейсе Grafana;
+# подключает к ней все JSON-файлы из /var/lib/grafana/dashboards (этот путь монтируется из проекта);
+# Grafana при старте автоматически импортирует эти дашборды.
+
+apiVersion: 1
+providers:
+  - name: TODO Starter
+    folder: TODO
+    type: file
+    disableDeletion: true
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards
+      recursive: true
