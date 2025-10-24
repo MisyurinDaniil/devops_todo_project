@@ -123,7 +123,7 @@ jobs:
         run: |
           python manage.py migrate --noinput
 
-      # 6. Запускаем unit тесты.
+      # 6. Запускаем  unit тесты.
       # Django сам создаст отдельную test-базу (test_todo и т.д.),
       # выполнит миграции туда, прогонит твои tests.py и удалит эту базу.
       - name: Run unit tests
