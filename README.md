@@ -5,6 +5,7 @@ ENV фалйы специально запушил на GIT.
 
 Полный стек с Prometheus + Grafana для мониторинга Django backend, Nginx и Postgres.
 
+http://localhost:8080/
 ---
 
 ## Сборка и запуск проекта
