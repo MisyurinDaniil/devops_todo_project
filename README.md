@@ -1,8 +1,8 @@
-## TODO Project
+# TODO Project
 
 ---
 
-## Сборка и запуск проекта
+# Сборка и запуск проекта
 
 ```bash
 # Собрать проект
@@ -18,7 +18,7 @@ Frontend проекта доступен по адресу:
 
 ---
 
-## Prometheus UI
+# Prometheus UI
 
 ```bash
 # Проверка здоровья/готовности
@@ -39,7 +39,7 @@ Prometheus сам по себе — просто сборщик метрик.
 
 ---
 
-## Grafana
+# Grafana
 
 Перейти к дашбордам можно по адресу:  
 [http://localhost:3000/dashboards]
@@ -49,7 +49,7 @@ Prometheus сам по себе — просто сборщик метрик.
 admin / admin
 ```
 
-## Дашборд "TODO"
+# Дашборд "TODO"
 
 Grafana показывает на дашборде следующие метрики:
 
@@ -64,7 +64,7 @@ Grafana показывает на дашборде следующие метри
 
 ---
 
-## Unit-тесты для Django REST API
+# Unit-тесты для Django REST API
 
 Для запуска тестов:
 
@@ -73,32 +73,32 @@ docker compose run --rm backend python manage.py test
 ```
 ---
 
-## Backup Postgres
+# Backup Postgres
 
 ```bash
 docker compose exec db sh -c \
   'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" > /backups/backup_$(date +%Y-%m-%d_%H-%M-%S).sql'
 ```
-## Restore Postgres
+# Restore Postgres
 
-# Остановить backend (чтобы не было коннектов)
+## Остановить backend (чтобы не было коннектов)
 ```bash
 docker compose stop backend
 ```
 
-# Зайти в контейнер Postgres и пересоздать БД
+## Зайти в контейнер Postgres и пересоздать БД
 ```bash
 docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -c "DROP DATABASE IF EXISTS \"$POSTGRES_DB\";"'
 docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -c "CREATE DATABASE \"$POSTGRES_DB\" OWNER \"$POSTGRES_USER\";"'
 ```
 
-# Восстановить дамп
+## Восстановить дамп
 ```bash
 docker compose exec db sh -c \
   'psql -U "$POSTGRES_USER" "$POSTGRES_DB" < /backups/backup_2025-10-26_19-32-10.sql'
 ```
 
-# Запускаем обратно backend
+## Запускаем обратно backend
 ```bash
 docker compose start backend
 ```
