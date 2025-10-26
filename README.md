@@ -75,24 +75,33 @@ docker compose run --rm backend python manage.py test
 
 ## Backup Postgres
 
+```bash
 docker compose exec db sh -c \
   'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" > /backups/backup_$(date +%Y-%m-%d_%H-%M-%S).sql'
-
+```
 ## Restore Postgres
 
 # Остановить backend (чтобы не было коннектов)
+```bash
 docker compose stop backend
+```
 
 # Зайти в контейнер Postgres и пересоздать БД
+```bash
 docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -c "DROP DATABASE IF EXISTS \"$POSTGRES_DB\";"'
 docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -c "CREATE DATABASE \"$POSTGRES_DB\" OWNER \"$POSTGRES_USER\";"'
+```
 
 # Восстановить дамп
+```bash
 docker compose exec db sh -c \
   'psql -U "$POSTGRES_USER" "$POSTGRES_DB" < /backups/backup_2025-10-26_19-32-10.sql'
+```
 
 # Запускаем обратно backend
+```bash
 docker compose start backend
+```
 
 
 © 2025 TODO — DevOps Observability Example
